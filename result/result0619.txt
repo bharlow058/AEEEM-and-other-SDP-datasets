@@ -1,0 +1,55 @@
+./dataset/SOFTLAB/ar1.arff ===> 0.393
+./dataset/SOFTLAB/ar3.arff
+./dataset/SOFTLAB/ar3.arff ===> 0.295
+./dataset/SOFTLAB/ar4.arff
+./dataset/SOFTLAB/ar4.arff ===> 0.301
+./dataset/SOFTLAB/ar5.arff
+./dataset/SOFTLAB/ar5.arff ===> 0.196
+./dataset/SOFTLAB/ar6.arff
+./dataset/SOFTLAB/ar6.arff ===> 0.478
+./dataset/NASA/cm1.arff
+./dataset/NASA/cm1.arff ===> 0.397
+./dataset/NASA/mw1.arff
+./dataset/NASA/mw1.arff ===> 0.558
+./dataset/NASA/PC1.arff
+./dataset/NASA/PC1.arff ===> 0.393
+./dataset/NASA/PC3.arff
+./dataset/NASA/PC3.arff ===> 0.704
+./dataset/NASA/PC4.arff
+./dataset/NASA/PC4.arff ===> 0.532
+./dataset/AEEEM/EQ.arff
+./dataset/AEEEM/EQ.arff ===> 0.373
+./dataset/AEEEM/JDT.arff
+./dataset/AEEEM/JDT.arff ===> 0.462
+./dataset/AEEEM/LC.arff
+./dataset/AEEEM/LC.arff ===> 0.539
+./dataset/AEEEM/ML.arff
+./dataset/AEEEM/ML.arff ===> 0.472
+./dataset/AEEEM/PDE.arff
+./dataset/AEEEM/PDE.arff ===> 0.512
+./dataset/Relink/apache.arff
+./dataset/Relink/apache.arff ===> 0.369
+./dataset/Relink/safe.arff
+./dataset/Relink/safe.arff ===> 0.519
+./dataset/Relink/zxing.arff
+./dataset/Relink/zxing.arff ===> 0.389
+./dataset/MORPH/ant-1.3.arff
+./dataset/MORPH/ant-1.3.arff ===> 0.371
+./dataset/MORPH/arc.arff
+./dataset/MORPH/arc.arff ===> 0.321
+./dataset/MORPH/camel-1.0.arff
+./dataset/MORPH/camel-1.0.arff ===> 0.431
+./dataset/MORPH/poi-1.5.arff
+./dataset/MORPH/poi-1.5.arff ===> 0.518
+./dataset/MORPH/redktor.arff
+./dataset/MORPH/redktor.arff ===> 0.471
+./dataset/MORPH/skarbonka.arff
+./dataset/MORPH/skarbonka.arff ===> 0.612
+./dataset/MORPH/tomcat.arff
+./dataset/MORPH/tomcat.arff ===> 0.357
+./dataset/MORPH/velocity-1.4.arff
+./dataset/MORPH/velocity-1.4.arff ===> 0.52
+./dataset/MORPH/xalan-2.4.arff
+./dataset/MORPH/xalan-2.4.arff ===> 0.446
+./dataset/MORPH/xerces-1.2.arff
+./dataset/MORPH/xerces-1.2.arff ===> 0.512
