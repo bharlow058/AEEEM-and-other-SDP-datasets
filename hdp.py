@@ -107,8 +107,6 @@ def KStest(d_source, d_target, features, cutoff=0.05):
   test = KS()
   for tar_feature, val1 in target.iteritems():
     for sou_feature, val2 in source.iteritems():
-      print(len(val1))
-      print(len(val2))
       result = test.kolmogorovSmirnovTest(val1,val2)
       print(result)
       # result = mytest.kolmogorovSmirnovTest(val1,val2)

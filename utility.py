@@ -10,6 +10,12 @@ import java.io.FileReader
 import weka.attributeSelection.Ranker as Ranker
 import weka.attributeSelection.ReliefFAttributeEval as ReliefFAttributeEval
 import weka.attributeSelection.AttributeSelection as attributeSelection
+import weka.classifiers.functions.Logistic as Logistic
+import weka.classifiers.Evaluation as Evaluation
+import weka.core.converters.ArffSaver as Saver
+import weka.filters.unsupervised.attribute.Remove as Remove
+import weka.filters.unsupervised.instance.Randomize as Randomize
+import weka.filters.unsupervised.instance.RemoveFolds as RemoveFolds
 
 # import weka.core.jvm as jvm
 # import weka.core.converters
@@ -108,7 +114,7 @@ def wekaCALL(source_src, target_src, source_attr=[], test_attr=[], isHDP=False):
   def getIndex(data, used_attr):
     # pdb.set_trace()
     del_attr = []
-    for k, attr in enumerate(data.attributes()):
+    for k, attr in enumerate(data.enumerateAttributes()):
       temp = str(attr).split(" ")
       if temp[1] not in used_attr:
         del_attr += [k]
@@ -117,39 +123,49 @@ def wekaCALL(source_src, target_src, source_attr=[], test_attr=[], isHDP=False):
   def delAttr(data, index):
     order = sorted(index, reverse=True)
     for i in order[1:]:  # delete from big index, except for the class attribute
-      data.delete_attribute(i)
+      data.deleteAttributeAt(i)
     return data
 
   source_data = loadWekaData(source_src)
   target_data = loadWekaData(target_src)
-  cls = Classifier(classname="weka.classifiers.functions.Logistic")
+  # cls = Classifier(classname="weka.classifiers.functions.Logistic")
+  cls = Logistic()
   if isHDP:
     # pdb.set_trace()
     source_del_attr = getIndex(source_data, source_attr)
     target_del_attr = getIndex(target_data, test_attr)
     source_data = delAttr(source_data, source_del_attr)
     target_data = delAttr(target_data, target_del_attr)
-  cls.build_classifier(source_data)
+  cls.buildClassifier(source_data)
   eval = Evaluation(source_data)
-  eval.test_model(cls, target_data)
+  eval.evaluateModel(cls, target_data)
   # target_data.num_attributes
   # print(eval.percent_correct)
   # print(eval.summary())
   # print(eval.class_details())
   # print(eval.area_under_roc(1))
-  return eval.area_under_roc(1)
+  return eval.areaUnderROC(1)
 
 
 def filter(data, toSave=False, file_name="test", filter_name="weka.filters.unsupervised.attribute.Remove",
            option=["-R", "first-3,last"]):
   # remove = Filter(classname="weka.filters.unsupervised.attribute.Remove", options = option)
   # option = ["-N","2","-F","2","-S","1"]
-  remove = Filter(classname=filter_name, options=option)
-  remove.inputformat(data)
-  filtered = remove.filter(data)
+  remove = None
+  if toSave: # removeFolds
+    remove = RemoveFolds()
+  else:
+    remove = Randomize()
+  remove.setOptions(option)
+  remove.setInputFormat(data)
+  remove.input(data)
+  filtered = remove.useFilter(data)
   if toSave:
-    saver = Saver(classname="weka.core.converters.ArffSaver")
-    saver.save_file(filtered, "./exp/" + file_name + ".arff")
+    saver = Saver()
+    saver.setInstances(filtered)
+    saver.setFile("./exp/" + file_name + ".arff")
+    saver.writeBatch()
+    # saver.save_file(filtered, "./exp/" + file_name + ".arff")
   # print(filtered)
   return filtered
 
