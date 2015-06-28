@@ -4,13 +4,20 @@ import pdb
 import random
 from os import listdir
 from os.path import isfile, join
-import weka.core.jvm as jvm
-import weka.core.converters
-from weka.core.converters import Loader, Saver
-from weka.classifiers import Classifier, Evaluation
-from weka.experiments import SimpleCrossValidationExperiment
-from weka.filters import Filter
-from weka.attribute_selection import ASSearch, ASEvaluation, AttributeSelection
+import weka.core.Instances
+import java.io.BufferedReader
+import java.io.FileReader
+import weka.attributeSelection.Ranker as Ranker
+import weka.attributeSelection.ReliefFAttributeEval as ReliefFAttributeEval
+import weka.attributeSelection.AttributeSelection as attributeSelection
+
+# import weka.core.jvm as jvm
+# import weka.core.converters
+# from weka.core.converters import Loader, Saver
+# from weka.classifiers import Classifier, Evaluation
+# from weka.experiments import SimpleCrossValidationExperiment
+# from weka.filters import Filter
+# from weka.attribute_selection import ASSearch, ASEvaluation, AttributeSelection
 
 
 class o:
@@ -51,8 +58,8 @@ def read(src="./dataset"):
     path = join(src, f)
     for val in [join(path, i) for i in listdir(path) if i != ".DS_Store"]:
       arff = loadWekaData(val)
-      attributes = [str(i).split(" ")[1] for i in arff.attributes()][:-1]  # exclude the label
-      columns = [arff.values(i) for i in range(arff.class_index)]  # exclude the class label
+      attributes = [str(i).split(" ")[1] for i in arff.enumerateAttributes()]  # exclude the label
+      columns = [arff.attributeToDoubleArray(i) for i in range(int(arff.classIndex()))]  # exclude the class label
       data[f] = data.get(f, []) + [o(name=val, attr=attributes, data=columns)]
   return data
 
@@ -74,10 +81,10 @@ def readsrc(src="./dataset"):
 
 
 def loadWekaData(src):
-  if not jvm.started: jvm.start()
-  loader = Loader(classname="weka.core.converters.ArffLoader")
-  data = loader.load_file(src)
-  data.class_is_last()
+  filereader = java.io.FileReader(src)
+  bufferreader = java.io.BufferedReader(filereader)
+  data = weka.core.Instances(bufferreader)
+  data.setClassIndex(data.numAttributes()-1)
   return data
 
 
@@ -157,22 +164,16 @@ def featureSelection(data, num_of_attributes):
   :return: data with selected feature
   :rtype: Instance
   """
-  search = ASSearch(classname="weka.attributeSelection.Ranker", options=["-N", str(num_of_attributes)])
-  evaluator = ASEvaluation(classname="weka.attributeSelection.ReliefFAttributeEval",
-                           options=["-M", "-1", "-D", "1", "-K", "10"])
-  attsel = AttributeSelection()
-  attsel.search(search)
-  attsel.evaluator(evaluator)
-  attsel.select_attributes(data)
-  # print("# attributes: " + str(attsel.number_attributes_selected))
-  # print("attributes: " + str(attsel.selected_attributes))
-  # print("result string:\n" + attsel.results_string)
-  for i in reversed(range(data.class_index)):  # delete feature
-    if i not in attsel.selected_attributes:
-      data.delete_attribute(i)
-  # pdb.set_trace()
-  return data
-
+  search = Ranker()
+  evaluator = ReliefFAttributeEval()
+  attsel = attributeSelection()
+  search.setOptions(['-N',str(num_of_attributes)])
+  attsel.setSearch(search)
+  attsel.setEvaluator(evaluator)
+  attsel.SelectAttributes(data)
+  features = attsel.selectedAttributes()[:num_of_attributes]
+  index = [i-1 for i in features] # for some reason, weka return index form 1-based not zero-based
+  return index
 
 if __name__ == "__main__":
   read()

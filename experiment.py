@@ -1,6 +1,9 @@
 # __author__ = 'WeiFu'
 from __future__ import division, print_function
 import sys
+sys.path.append('/Users/WeiFu/Github/HDP_Jython/jar/weka.jar')
+sys.path.append('/Users/WeiFu/Github/HDP_Jython/jar/commons-math3-3.5/commons-math3-3.5.jar')
+sys.path.append('/Users/WeiFu/Github/HDP_Jython/jar/jgrahpt-0.9.1.jar')
 from utility import *
 from wpdp import *
 from cpdp import *
@@ -59,5 +62,5 @@ def run():
 
 
 if __name__ == "__main__":
-  print("hshshhs")
+
   run()

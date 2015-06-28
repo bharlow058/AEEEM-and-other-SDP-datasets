@@ -2,9 +2,11 @@
 from __future__ import print_function, division
 import random, math
 from utility import *
-from scipy import stats
-import numpy as np
-import networkx as nx
+import org.apache.commons.math3.stat.inference.KolmogorovSmirnovTest as KS
+from bipartite import maxWeightMatching
+# from scipy import stats
+# import numpy as np
+# import networkx as nx
 
 def transform(d, selected=[]):
   """
@@ -41,20 +43,49 @@ def maximumWeighted(match, target_lst, source_lst):
   :return : matched metrics as well as corresponding values
   :rtype: class o
   """
-
+  edges,track =[],[]
   value = 0
   attr_source, attr_target = [], []
-  G = nx.Graph()
-  for key, val in match.iteritems():
-    G.add_edge(key[0] + "source", key[1] + "target", weight=val)  # add suffix to make it unique
-  result = nx.max_weight_matching(G)
-  for key, val in result.iteritems():  # in Results, (A:B) and (B:A) both exist
-    if key[:-6] in source_lst and val[:-6] in target_lst:
-      attr_target.append(val[:-6])
-      attr_source.append(key[:-6])
-      value += match[(key[:-6], val[:-6])]
+  for key , val in match.iteritems():
+    edges.append((2*int(source_lst.index(key[0])),2*int(target_lst.index(key[1]))+1,val))
+    track+=[key[0],key[1]]
+  result = maxWeightMatching(edges)
+  print(result)
+  for node in result:
+    if node != -1:
+      if track[node] in source_lst:
+        attr_source.append(track[node])
+      elif track[node] in target_lst:
+        attr_target.append(track[node])
+  for source, target in zip(attr_source,attr_target):
+    value +=match[(source,target)]
   # pdb.set_trace()
   return o(score=value, attr_source=attr_source, attr_target=attr_target)
+  #
+  #
+  #
+  #
+  #
+  #
+  #
+  #
+  #
+  #
+  #
+  # pdb.set_trace()
+  # value = 0
+  # attr_source, attr_target = [], []
+  # G = nx.Graph()
+  # for key, val in match.iteritems():
+  #   G.add_edge(key[0] + "source", key[1] + "target", weight=val)  # add suffix to make it unique
+  # result = nx.max_weight_matching(G)
+  # for key, val in result.iteritems():  # in Results, (A:B) and (B:A) both exist
+  #   if key[:-6] in source_lst and val[:-6] in target_lst:
+  #     attr_target.append(val[:-6])
+  #     attr_source.append(key[:-6])
+  #     value += match[(key[:-6], val[:-6])]
+  # # pdb.set_trace()
+  # return o(score=value, attr_source=attr_source, attr_target=attr_target)
 
 
 def KStest(d_source, d_target, features, cutoff=0.05):
@@ -73,13 +104,17 @@ def KStest(d_source, d_target, features, cutoff=0.05):
   source = transform(d_source, features)
   target = transform(d_target)
   target_lst, source_lst = [], []
+  test = KS()
   for tar_feature, val1 in target.iteritems():
     for sou_feature, val2 in source.iteritems():
-      result = stats.ks_2samp(np.array(val1), np.array(val2))  # (a,b): b is p-value, zero means significantly different
+      print(len(val1))
+      print(len(val2))
+      result = test.kolmogorovSmirnovTest(val1,val2)
+      print(result)
       # result = mytest.kolmogorovSmirnovTest(val1,val2)
-      if result[1] > cutoff:
+      if result > cutoff:
         # match[sou] = match.get(sou,[])+[(tar,result[1])]
-        match[(sou_feature, tar_feature)] = result[1]
+        match[(sou_feature, tar_feature)] = result
         if tar_feature not in target_lst:
           target_lst.append(tar_feature)
         if sou_feature not in source_lst:
@@ -95,8 +130,8 @@ def attributeSelection(data):
     for source in lst:
       source_name = source["name"]
       A = loadWekaData(source_name)
-      A_selected = featureSelection(A, int(A.class_index * 0.15))
-      features_list = [str(i).split(" ")[1] for i in A_selected.attributes()][:-1]
+      A_selected_index = featureSelection(A, int(int(A.classIndex()) * 0.15))
+      features_list = [str(attr).split(" ")[1] for i,attr in enumerate(A.enumerateAttributes()) if i in A_selected_index]
       feature_dict[source_name] = features_list
   return feature_dict
 
