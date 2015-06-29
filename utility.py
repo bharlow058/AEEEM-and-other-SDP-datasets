@@ -1,21 +1,32 @@
 # __author__ = 'WeiFu'
 from __future__ import print_function, division
+import jnius_config
+jnius_config.add_options('-Xrs', '-Xmx4096')
+jnius_config.set_classpath('.', '/Users/WeiFu/Github/HDP_Jython/jar/weka.jar','/Users/WeiFu/Github/HDP_Jython/jar/commons-math3-3.5/commons-math3-3.5.jar')
 import pdb
 import random
 from os import listdir
 from os.path import isfile, join
-import weka.core.Instances
-import java.io.BufferedReader
-import java.io.FileReader
-import weka.attributeSelection.Ranker as Ranker
-import weka.attributeSelection.ReliefFAttributeEval as ReliefFAttributeEval
-import weka.attributeSelection.AttributeSelection as attributeSelection
-import weka.classifiers.functions.Logistic as Logistic
-import weka.classifiers.Evaluation as Evaluation
-import weka.core.converters.ArffSaver as Saver
-import weka.filters.unsupervised.attribute.Remove as Remove
-import weka.filters.unsupervised.instance.Randomize as Randomize
-import weka.filters.unsupervised.instance.RemoveFolds as RemoveFolds
+from jnius import autoclass
+
+#
+#
+#
+#
+#
+#
+# import weka.core.Instances
+# import java.io.BufferedReader
+# import java.io.FileReader
+# import weka.attributeSelection.Ranker as Ranker
+# import weka.attributeSelection.ReliefFAttributeEval as ReliefFAttributeEval
+# import weka.attributeSelection.AttributeSelection as attributeSelection
+# import weka.classifiers.functions.Logistic as Logistic
+# import weka.classifiers.Evaluation as Evaluation
+# import weka.core.converters.ArffSaver as Saver
+# import weka.filters.unsupervised.attribute.Remove as Remove
+# import weka.filters.unsupervised.instance.Randomize as Randomize
+# import weka.filters.unsupervised.instance.RemoveFolds as RemoveFolds
 
 # import weka.core.jvm as jvm
 # import weka.core.converters
@@ -45,6 +56,12 @@ class o:
     return '{' + ' '.join(show) + '}'
 
 
+def enumerateToList(enum):
+  result =[]
+  while enum.hasMoreElements():
+    result.append(enum.nextElement().toString())
+  return result
+
 def read(src="./dataset"):
   """
   read data from arff files, return all data in a dictionary
@@ -64,7 +81,7 @@ def read(src="./dataset"):
     path = join(src, f)
     for val in [join(path, i) for i in listdir(path) if i != ".DS_Store"]:
       arff = loadWekaData(val)
-      attributes = [str(i).split(" ")[1] for i in arff.enumerateAttributes()]  # exclude the label
+      attributes = [str(i).split(" ")[1] for i in enumerateToList(arff.enumerateAttributes())]  # exclude the label
       columns = [arff.attributeToDoubleArray(i) for i in range(int(arff.classIndex()))]  # exclude the class label
       data[f] = data.get(f, []) + [o(name=val, attr=attributes, data=columns)]
   return data
@@ -87,9 +104,8 @@ def readsrc(src="./dataset"):
 
 
 def loadWekaData(src):
-  filereader = java.io.FileReader(src)
-  bufferreader = java.io.BufferedReader(filereader)
-  data = weka.core.Instances(bufferreader)
+  source = autoclass('weka.core.converters.ConverterUtils$DataSource')(src)
+  data = source.getDataSet()
   data.setClassIndex(data.numAttributes()-1)
   return data
 
@@ -114,7 +130,7 @@ def wekaCALL(source_src, target_src, source_attr=[], test_attr=[], isHDP=False):
   def getIndex(data, used_attr):
     # pdb.set_trace()
     del_attr = []
-    for k, attr in enumerate(data.enumerateAttributes()):
+    for k, attr in enumerate(enumerateToList(data.enumerateAttributes())):
       temp = str(attr).split(" ")
       if temp[1] not in used_attr:
         del_attr += [k]
@@ -129,7 +145,7 @@ def wekaCALL(source_src, target_src, source_attr=[], test_attr=[], isHDP=False):
   source_data = loadWekaData(source_src)
   target_data = loadWekaData(target_src)
   # cls = Classifier(classname="weka.classifiers.functions.Logistic")
-  cls = Logistic()
+  cls = autoclass('weka.classifiers.functions.Logistic')
   if isHDP:
     # pdb.set_trace()
     source_del_attr = getIndex(source_data, source_attr)
@@ -137,7 +153,7 @@ def wekaCALL(source_src, target_src, source_attr=[], test_attr=[], isHDP=False):
     source_data = delAttr(source_data, source_del_attr)
     target_data = delAttr(target_data, target_del_attr)
   cls.buildClassifier(source_data)
-  eval = Evaluation(source_data)
+  eval = autoclass('weka.classifiers.Evaluation')(source_data)
   eval.evaluateModel(cls, target_data)
   # target_data.num_attributes
   # print(eval.percent_correct)
@@ -153,15 +169,15 @@ def filter(data, toSave=False, file_name="test", filter_name="weka.filters.unsup
   # option = ["-N","2","-F","2","-S","1"]
   remove = None
   if toSave: # removeFolds
-    remove = RemoveFolds()
+    remove = autoclass('weka.filters.unsupervised.instance.RemoveFolds')()
   else:
-    remove = Randomize()
+    remove = autoclass('weka.filters.unsupervised.instance.Randomize')()
   remove.setOptions(option)
   remove.setInputFormat(data)
   remove.input(data)
   filtered = remove.useFilter(data)
   if toSave:
-    saver = Saver()
+    saver = autoclass('weka.core.converters.ArffSaver')()
     saver.setInstances(filtered)
     saver.setFile("./exp/" + file_name + ".arff")
     saver.writeBatch()
@@ -180,9 +196,9 @@ def featureSelection(data, num_of_attributes):
   :return: data with selected feature
   :rtype: Instance
   """
-  search = Ranker()
-  evaluator = ReliefFAttributeEval()
-  attsel = attributeSelection()
+  search = autoclass('weka.attributeSelection.Ranker')()
+  evaluator = autoclass('weka.attributeSelection.ReliefFAttributeEval')()
+  attsel = autoclass('weka.attributeSelection.AttributeSelection')()
   search.setOptions(['-N',str(num_of_attributes)])
   attsel.setSearch(search)
   attsel.setEvaluator(evaluator)

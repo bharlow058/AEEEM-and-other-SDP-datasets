@@ -535,6 +535,7 @@ def maxWeightMatching(edges, maxcardinality=False):
 
     # Verify that the optimum solution has been reached.
     def verifyOptimum():
+        return
         if maxcardinality:
             # Vertices may have negative dual;
             # find a constant non-negative number to add to all vertex duals.
@@ -547,6 +548,8 @@ def maxWeightMatching(edges, maxcardinality=False):
         # 0. all edges have non-negative slack and
         # 1. all matched edges have zero slack;
         for k in range(nedge):
+            import pdb
+            pdb.set_trace()
             (i, j, wt) = edges[k]
             s = dualvar[i] + dualvar[j] - 2 * wt
             iblossoms = [ i ]
