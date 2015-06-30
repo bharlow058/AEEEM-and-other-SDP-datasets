@@ -6,6 +6,28 @@ from wpdp import *
 from cpdp import *
 from hdp import *
 
+def readMatch(src= "./result/source_target_match.txt"):
+  def getStrip(lst):
+    result = []
+    for one in lst:
+      result.append(one[one.index("'")+1:one.rindex("'")])
+    return result
+  result = []
+  f = open(src,"r")
+  X = f.readlines()[0].split("}, {")
+  for each in X:
+    attr_source = getStrip(each[each.index("attr_source")+len("attr_source")+2:each.index("attr_target")-3].split(","))
+    attr_target = getStrip(each[each.index("attr_target")+len("attr_target")+2:each.index("group")-3].split(","))
+    group = each[each.index("group")+len("group")+1:each.index("id")-2]
+    score = float(each[each.index("score")+len("score")+2:each.index("source_src")-2])
+    source_src = (each[each.index("source_src")+len("source_src")+1:each.index("target_src")-2])
+    target_src = (each[each.index("target_src")+len("target_src")+1:])
+    temp = o(score=score, attr_source=attr_source, attr_target=attr_target,source_src = source_src,target_src=target_src)
+    result.append(temp)
+    # pdb.set_trace()
+
+
+
 
 def process(match, target_src, result):
   total = []
@@ -31,8 +53,8 @@ def process(match, target_src, result):
 
 def run():
   datasrc = readsrc()
-  source_target_match = KSanalyzer()
-  pdb.set_trace()
+  # source_target_match = KSanalyzer()
+  source_target_match = readMatch()
   for group, srclst in datasrc.iteritems():
     for one in srclst:
       random.seed(1)
@@ -59,5 +81,5 @@ def run():
 
 
 if __name__ == "__main__":
-
-  run()
+  readMatch()
+  # run()
