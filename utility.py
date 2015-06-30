@@ -145,7 +145,7 @@ def wekaCALL(source_src, target_src, source_attr=[], test_attr=[], isHDP=False):
   source_data = loadWekaData(source_src)
   target_data = loadWekaData(target_src)
   # cls = Classifier(classname="weka.classifiers.functions.Logistic")
-  cls = autoclass('weka.classifiers.functions.Logistic')
+  cls = autoclass('weka.classifiers.functions.Logistic')()
   if isHDP:
     # pdb.set_trace()
     source_del_attr = getIndex(source_data, source_attr)
@@ -168,18 +168,19 @@ def filter(data, toSave=False, file_name="test", filter_name="weka.filters.unsup
   # remove = Filter(classname="weka.filters.unsupervised.attribute.Remove", options = option)
   # option = ["-N","2","-F","2","-S","1"]
   remove = None
+  filter = autoclass('weka.filters.AllFilter')
   if toSave: # removeFolds
     remove = autoclass('weka.filters.unsupervised.instance.RemoveFolds')()
   else:
     remove = autoclass('weka.filters.unsupervised.instance.Randomize')()
   remove.setOptions(option)
   remove.setInputFormat(data)
-  remove.input(data)
-  filtered = remove.useFilter(data)
+  # remove.input(data)
+  filtered = filter.useFilter(data,remove)
   if toSave:
     saver = autoclass('weka.core.converters.ArffSaver')()
     saver.setInstances(filtered)
-    saver.setFile("./exp/" + file_name + ".arff")
+    saver.setFile(autoclass("java.io.File")("./exp/" + file_name + ".arff"))
     saver.writeBatch()
     # saver.save_file(filtered, "./exp/" + file_name + ".arff")
   # print(filtered)
